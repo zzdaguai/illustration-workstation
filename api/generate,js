@@ -6,7 +6,9 @@ const openai = new OpenAI({
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST allowed" });
+    return res.status(405).json({
+      error: "Only POST allowed",
+    });
   }
 
   try {
@@ -19,10 +21,11 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({
-      imageUrl: `data:image/png;base64,${result.data[0].b64_json}`,
+      imageUrl: result.data[0].url,
     });
   } catch (error) {
     console.error(error);
+
     return res.status(500).json({
       error: "Image generation failed",
       detail: error.message,
