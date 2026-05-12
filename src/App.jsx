@@ -65,34 +65,44 @@ export default function BatchIllustrationWorkstation() {
     document.body.removeChild(link);
   };
 
-  const generateMockResults = async () => {
-    if (!canGenerate) return;
+const generateMockResults = async () => {
+  if (!canGenerate) return;
 
-    setIsGenerating(true);
-    setResults([]);
-    setSourceImages((prev) => prev.map((item) => ({ ...item, status: "generating" })));
+  setIsGenerating(true);
+  setResults([]);
+
+  try {
+    const newResults = [];
 
     for (const item of sourceImages) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setSourceImages((prev) =>
-        prev.map((img) => (img.id === item.id ? { ...img, status: "done" } : img))
-      );
-
-      setResults((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          sourceId: item.id,
-          sourceName: item.name,
-          url: item.url,
-          label: "模拟生成结果",
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ]);
+        body: JSON.stringify({
+          prompt: `${prompt}。参考图风格统一，主体内容来自上传素材。`,
+        }),
+      });
+
+      const data = await response.json();
+
+      newResults.push({
+        id: crypto.randomUUID(),
+        sourceId: item.id,
+        sourceName: item.name,
+        url: data.imageUrl,
+      });
     }
 
-    setIsGenerating(false);
-  };
+    setResults(newResults);
+  } catch (error) {
+    console.error(error);
+    alert("生成失败");
+  }
+
+  setIsGenerating(false);
+};
 
   const progress = useMemo(() => {
     if (sourceImages.length === 0) return 0;
