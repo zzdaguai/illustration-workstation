@@ -34,13 +34,16 @@ const imageUrl = image.url
 return Response.json({
   imageUrl,
 });
-  } catch (error) {
-    return Response.json(
-      {
-        error: "Image generation failed",
-        detail: error.message,
-      },
-      { status: 500 }
-    );
-  }
+ catch (error) {
+  console.log("FULL ERROR:", error);
+
+  return Response.json(
+    {
+      error: "Image generation failed",
+      detail: error.message,
+      full: JSON.stringify(error, null, 2),
+    },
+    { status: 500 }
+  );
+}
 }
