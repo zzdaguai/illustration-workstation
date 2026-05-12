@@ -35,13 +35,18 @@ return Response.json({
   imageUrl,
 });
  catch (error) {
-  console.log("FULL ERROR:", error);
+  const detail =
+    error?.response?.data ||
+    error?.error ||
+    error?.message ||
+    error;
+
+  console.log("OPENAI_ERROR_DETAIL:", detail);
 
   return Response.json(
     {
       error: "Image generation failed",
-      detail: error.message,
-      full: JSON.stringify(error, null, 2),
+      detail,
     },
     { status: 500 }
   );
