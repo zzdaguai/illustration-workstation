@@ -1,0 +1,31 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Only POST allowed" });
+  }
+
+  try {
+    const { prompt } = req.body;
+
+    const result = await openai.images.generate({
+      model: "gpt-image-1.5",
+      prompt,
+      size: "1024x1024",
+    });
+
+    return res.status(200).json({
+      imageUrl: `data:image/png;base64,${result.data[0].b64_json}`,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Image generation failed",
+      detail: error.message,
+    });
+  }
+}
