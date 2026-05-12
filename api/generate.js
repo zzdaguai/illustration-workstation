@@ -7,7 +7,7 @@ const openai = new OpenAI({
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
-      error: "Only POST requests are allowed",
+      error: "Only POST allowed",
     });
   }
 
@@ -15,30 +15,22 @@ export default async function handler(req, res) {
     const { prompt } = req.body;
 
     const result = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt,
+      model: "dall-e-3",
+      prompt: prompt || "Create a cute commercial illustration.",
       size: "1024x1024",
+      n: 1,
     });
 
-    console.log(
-      "OPENAI RAW RESULT:",
-      JSON.stringify(result, null, 2)
-    );
+    const imageUrl = result.data?.[0]?.url;
 
-    const image = result.data?.[0];
-
-    if (!image?.b64_json) {
-      throw new Error("No base64 image returned from OpenAI");
+    if (!imageUrl) {
+      throw new Error("No image URL returned from OpenAI");
     }
-
-    const imageUrl = `data:image/png;base64,${image.b64_json}`;
 
     return res.status(200).json({
       imageUrl,
     });
   } catch (error) {
-    console.log("OPENAI ERROR:", error);
-
     return res.status(500).json({
       error: "Image generation failed",
       detail: error.message,
