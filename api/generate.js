@@ -4,16 +4,15 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function GET() {
-  return Response.json(
-    { error: "Only POST allowed" },
-    { status: 405 }
-  );
-}
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Only POST allowed",
+    });
+  }
 
-export async function POST(request) {
   try {
-    const { prompt } = await request.json();
+    const { prompt } = req.body;
 
     const result = await openai.images.generate({
       model: "gpt-image-1",
@@ -23,32 +22,23 @@ export async function POST(request) {
 
     const image = result.data?.[0];
 
-if (!image) {
-  throw new Error("No image returned from OpenAI");
-}
+    if (!image) {
+      throw new Error("No image returned");
+    }
 
-const imageUrl = image.url
-  ? image.url
-  : `data:image/png;base64,${image.b64_json}`;
+    const imageUrl = image.url
+      ? image.url
+      : `data:image/png;base64,${image.b64_json}`;
 
-return Response.json({
-  imageUrl,
-});
- catch (error) {
-  const detail =
-    error?.response?.data ||
-    error?.error ||
-    error?.message ||
-    error;
+    return res.status(200).json({
+      imageUrl,
+    });
+  } catch (error) {
+    console.log("OPENAI ERROR:", error);
 
-  console.log("OPENAI_ERROR_DETAIL:", detail);
-
-  return Response.json(
-    {
+    return res.status(500).json({
       error: "Image generation failed",
-      detail,
-    },
-    { status: 500 }
-  );
-}
+      detail: error.message,
+    });
+  }
 }
