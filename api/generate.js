@@ -21,9 +21,19 @@ export async function POST(request) {
       size: "1024x1024",
     });
 
-    return Response.json({
-      imageUrl: `data:image/png;base64,${result.data[0].b64_json}`,
-    });
+    const image = result.data?.[0];
+
+if (!image) {
+  throw new Error("No image returned from OpenAI");
+}
+
+const imageUrl = image.url
+  ? image.url
+  : `data:image/png;base64,${image.b64_json}`;
+
+return Response.json({
+  imageUrl,
+});
   } catch (error) {
     return Response.json(
       {
